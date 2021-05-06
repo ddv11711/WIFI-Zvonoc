@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta http-equiv="Contrnt-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+<link href="css/index.css" rel="stylesheet" type="text/css">
+<title >Главная</title>
+</head>
+<body onload="load();"><!---->
+<noscript style="font-size: 3em; text-align: center; line-height: 200%; color:red; margin:10%;" >Здравствуйте, в вашем браузере не включен JavaScript, без него сайт нормально функционировать не будет. Настоятельно просим включить JavaScript для работы с нашим сайтом!!!</noscript>
+<div id="page-preloader"class="preloader">
+<div class="loader"></div>
+</div>
+<div>
+<h1>Главная</h1>
+<div id="telo" >
+<div id="golova">{{SSDP}}</div>
+<div ><a  href="setup.html"><button id="setup" value="{{flag}}">Конфигурация</button></a></div>
+<div><a href="ring2.html"><button id="ring">Расписание</button></a></div>
+</div>
+</div>
+<script type="text/javascript">
+var xmlHttp=createXmlHttpObject();
+var doc = document;
+doc.addEventListener("DOMContentLoaded", function () { 
+	setTimeout(function(){if (doc.getElementById("setup").value==0){
+	var error=true,str="Пожалуйста укажите новый логин и пароль";
+	while(error){
+	   if (confirm(str)){
+	      var ssid="",password;
+	      ssid=prompt("Логин");
+		  password=prompt("Пароль");
+	      if(ssid==""&&password==""||ssid!=""&&password==""||ssid!=""&&password!=""){
+		  error=false;
+          send_request(this,"w3a2o4jS?kAM184BD="+ssid+"&68tS0pMP="+password);
+		  send_request(this,"flag?flag=1");}
+		  else{
+		  str+="\n Доступные варианты:\n 1) указать логин и пороль\n 2)указать только логин\n 3)ничего не указывать для чтобы отключить аунтификацию";
+		  }}
+		  else error=false;
+		  }}},2000);})
+//Загрузка
+function createXmlHttpObject(){
+ if(window.XMLHttpRequest){
+  xmlHttp=new XMLHttpRequest();
+ }else{
+  xmlHttp=new ActiveXObject('Microsoft.XMLHTTP');
+ }
+ return xmlHttp;
+}
+function load(){
+ if(xmlHttp.readyState==0 || xmlHttp.readyState==4){
+  xmlHttp.open('PUT','/configs.json',true);
+  xmlHttp.send(null);
+  xmlHttp.onload = function(e) {
+   jsonResponse=JSON.parse(xmlHttp.responseText);
+   loadBlock();
+  }
+ }
+}
+function loadBlock(data2) {
+ data2 = JSON.parse(xmlHttp.responseText);
+ data = doc.getElementsByTagName('body')[0].innerHTML;
+ var new_string;
+for (var key in data2) {
+ new_string = data.replace(new RegExp('{{'+key+'}}', 'g'), data2[key]);
+ data = new_string;
+}
+if(data2["error"]!="")alert(data2["error"]);send_request(this,"error?error=ok");
+ doc.getElementsByTagName('body')[0].innerHTML = new_string;
+ setTimeout(function(){doc.getElementById("page-preloader").style.opacity="0";},1000);
+ setTimeout(function(){doc.getElementById("page-preloader").parentNode.removeChild(doc.getElementById("page-preloader"));},2000);
+}
+//СОХРАНЕНИЕ
+function send_request(submit,server){
+ request = new XMLHttpRequest();
+ request.open("POST", server, true);
+ request.send();
+ save_status(submit,request);
+}
+function save_status(submit,request){
+ old_submit = submit.value;
+ request.onreadystatechange = function() {
+  if (request.readyState != 4) return;
+  submit.value = request.responseText;
+  setTimeout(function(){
+   submit.value=old_submit;
+   submit_disabled(false);
+  }, 1000);
+ }
+ submit_disabled(true);
+}
+function submit_disabled(request){
+ var inputs = doc.getElementsByTagName("input");
+ for (var i = 0; i < inputs.length; i++) {
+  if (inputs[i].type === 'submit') {inputs[i].disabled = request;}
+ }
+}
+</script>
+</body>
+</html>

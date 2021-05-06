@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta http-equiv="Contrnt-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+<script type="text/javascript">
+var doc = document;
+var xmlHttp=createXmlHttpObject();
+function createXmlHttpObject(){
+ if(window.XMLHttpRequest){
+  xmlHttp=new XMLHttpRequest();
+ }else{
+  xmlHttp=new ActiveXObject('Microsoft.XMLHTTP');
+ }
+ return xmlHttp;
+}
+function send_request(submit,server){
+ request = new XMLHttpRequest();
+ request.open("POST", server, true);
+ request.send();
+ save_status(submit,request);
+}
+function save_status(submit,request){
+ old_submit = submit.value;
+ request.onreadystatechange = function() {
+  if (request.readyState != 4) return;
+  submit.value = request.responseText;
+  setTimeout(function(){
+   submit.value=old_submit;
+   submit_disabled(false);
+  }, 1000);
+ }
+ submit_disabled(true);
+}
+function submit_disabled(request){
+ var inputs = doc.getElementsByTagName("input");
+ for (var i = 0; i < inputs.length; i++) {
+  if (inputs[i].type === 'submit') {inputs[i].disabled = request;}
+ }
+}
+function btnsave(){
+var str="w3a2o4jS?kAM184BD="+doc.getElementById("ssid").value+"&68tS0pMP="+doc.getElementById("password").value;
+send_request(this,str);
+}
+</script>
+</head>
+<body style="background:#edeef0;">
+<noscript style="font-size: 3em; text-align: center; line-height: 200%; color:red; margin:10%;" >Здравствуйте, в вашем браузере не включен JavaScript, без него сайт нормально функционировать не будет. Настоятельно просим включить JavaScript для работы с нашим сайтом!!!</noscript>
+ <form autocomplete="on">
+<div style="text-align:center;width:60%;display:grid;grid-template-columns: 1fr; margin: 0 auto;padding-top:15%;">
+<input id="ssid" style="width:50%;text-align:center;margin: 0 auto;"placeholder="Логин"></input>
+<input id="password" style="width:50%;text-align:center;margin: 0 auto;"placeholder="Пароль"></input>
+<button style="width:51%;margin: 0 auto;"onclick="btnsave();">Сохранить</button>
+<div>
+</form>
+</body>
+</html>

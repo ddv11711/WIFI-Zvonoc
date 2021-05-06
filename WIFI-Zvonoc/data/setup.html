@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+ <head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Настройки</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css" >
+  <link href="img/favicon.ico" rel="shortcut icon" type="image/x-icon">
+  <script src="js/function.js" type="text/javascript" ></script>
+  <script type="text/javascript">
+   var set_real_time;
+   var tumbler;
+   function handleServerResponse(){
+    clearTimeout(set_real_time);
+    var res = jsonResponse.time.split(":");
+    real_time(hours=res[0],min=res[1],sec=res[2]);
+    doc.body.style.backgroundColor="rgb("+jsonResponse.rgb+")";
+   }
+   function real_time(hours,min,sec) {
+   sec=Number(sec)+1;
+    if (sec>=60){min=Number(min)+1;sec=0;}
+	if(sec<10)sec="0"+sec;
+    if (min>=60){hours=Number(hours)+1;min=0;}
+	if(min<10) min="0"+min;
+    if (hours>=24){hours=0};
+    doc.getElementById("time").innerHTML = hours+":"+min+":"+sec;
+    set_real_time = setTimeout("real_time("+hours+","+min+","+sec+");", 1000);
+   }
+   function load_time(submit){
+    server = "/Time";
+    send_request(submit,server);
+    load();
+   }
+   function time_zone(submit){
+    server = "/TimeZone?timezone="+val('timezone');
+    send_request(submit,server);
+   }
+   function set_time_zone(submit){
+    var set_date = new Date();
+    var gmtHours = -set_date.getTimezoneOffset()/60;
+    doc.getElementById('timezone').value = gmtHours;
+    server = "/TimeZone?timezone="+gmtHours;
+    send_request(submit,server);
+   }
+   function set_ssid(submit){
+    server = "/ssid?ssid="+val('ssid')+"&password="+encodeURIComponent(val('password'));
+    send_request(submit,server);
+    alert("Измененя вступят в силу после перезагрузки. Пожалуйта перезагрузите устройство.");
+   }
+   function set_ssid_ap(submit){
+    server = "/ssidap?ssidAP="+val('ssidap')+"&passwordAP="+encodeURIComponent(val('passwordAp'));
+    send_request(submit,server);
+    alert("Измененя вступят в силу после перезагрузки. Пожалуйта перезагрузите устройство.");
+   }
+   function set_ssdp(submit){
+    server = "/ssdp?ssdp="+val('ssdp');
+    send_request(submit,server);
+    doc.getElementById('ssdp_t').innerHTML = val('ssdp');
+   }
+   function restart(submit,texts){
+    if (confirm(texts)) {
+	 server = "/restart?device=ok";
+     send_request(submit,server);
+     return true;
+    } else {
+     return false;
+    }
+   }
+   function poisk(){
+   alert("Переподключитесь к точки доступа, чтобы обновить страницу");
+   send_request(this,"/ip?device=ok");
+   }
+   function btncheck(){
+            if (tumbler) tumbler=0;
+			else tumbler=1;
+			send_request(this,"/saturday?saturday="+tumbler);
+   }
+   function predupbutn(){
+   if(doc.getElementById("predupbutn").value=="Да"){
+     doc.getElementById("predupbutn").value="Нет";
+	 doc.getElementById("predupbutn").className="predupbutn_net";
+	 send_request(this,"/flag1?flag1=0");
+  }
+   else{ 
+   doc.getElementById("predupbutn").value="Да";
+   doc.getElementById("predupbutn").className="predupbutn_da";
+   send_request(this,"/flag1?flag1=1");
+   }
+   }
+   function ring_pravo(){
+   var of =doc.getElementById("dlina_inputoff").value;
+   if(doc.getElementById("ring_aut").className==0){
+   doc.getElementById("ring_aut").innerHTML="Разные";
+   doc.getElementById("ring_aut").className=1;
+   doc.getElementById("flag_time").style.gridTemplateColumns="1fr";
+   doc.getElementById("time_tekst1").innerHTML="На урок";
+   doc.getElementById("flag_time").removeChild(doc.getElementById("time_tekst2"));
+   doc.getElementById("flag_time").removeChild(doc.getElementById("input_div1"));
+   var dop=[5];
+   dop[0]=doc.createElement("h2");
+   dop[0].id="time_tekst2";
+   dop[0].innerHTML='С урока';
+   dop[1]=doc.createElement("div");
+   dop[1].id="input_div1";
+   dop[1].innerHTML='<input id="dlina_inputon1" class="form-control" type="number" pattern="^[ 0-9]+$" min="1" value="1">'
+   dop[2]=doc.createElement("div");
+   dop[2].id="kolvo2";
+   dop[2].innerHTML='<h2>Количество звонков: <span id="nomer1">1</span></h2><div class="plus_minus"><button class="btn_minus" onclick="btn_minus(this);"><div class="minus">-</div></button><button class="btn_plus" onclick="btn_plus1(this);"><div class="plus">+</div></button></div>';
+   dop[3]=doc.createElement("h2");
+   dop[3].id="time_tekst3";
+   dop[3].innerHTML='Пауза';
+   dop[4]=doc.createElement("div");
+   dop[4].id="input_div2";
+   dop[4].innerHTML='<input id="dlina_inputoff" class="form-control" type="number" pattern="^[ 0-9]+$" min="1" value="'+of+'">'   
+   for(var i=0;i<5;i++)doc.getElementById("telo").insertBefore(dop[i],doc.getElementById("time_save_btn"));
+   }
+   else if(doc.getElementById("ring_aut").className==1){
+   doc.getElementById("ring_aut").innerHTML="Одинаковые";
+   doc.getElementById("ring_aut").className=0;
+   doc.getElementById("flag_time").style.gridTemplateColumns="1fr 1fr";
+   doc.getElementById("time_tekst1").innerHTML="Длина Звонка";
+   console.log("ok");
+   doc.getElementById("telo").removeChild(doc.getElementById("input_div2"));
+   doc.getElementById("telo").removeChild(doc.getElementById("time_tekst3"));
+   doc.getElementById("telo").removeChild(doc.getElementById("time_tekst2"));
+   doc.getElementById("telo").removeChild(doc.getElementById("input_div1"));
+   doc.getElementById("telo").removeChild(doc.getElementById("kolvo2"));
+   var dop=[2];
+   dop[0]=doc.createElement("h2");
+   dop[0].id="time_tekst2";
+   dop[0].innerHTML='Длина Паузы';
+   doc.getElementById("time_tekst1").insertAdjacentElement('afterEnd',dop[0]);
+   dop[1]=doc.createElement("div");
+   dop[1].id="input_div1";
+   dop[1].innerHTML='<input id="dlina_inputoff" class="form-control" type="number" pattern="^[ 0-9]+$" min="1" value="'+of+'">'
+   doc.getElementById("dlina_inputon").insertAdjacentElement('afterEnd',dop[1]);
+   }
+}
+   function time_save(){//переписать
+     
+
+
+
+/*	 if (doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55){
+         if(doc.getElementById("dlina_inputon").style.border!="2px solid #e7e7e7")doc.getElementById("dlina_inputon").style.border="2px solid #e7e7e7"; 
+		 if(doc.getElementById("nomer").style.color!="#28b62c")doc.getElementById("nomer").style.color="#28b62c";
+		 if((doc.getElementById("ring_aut").className=="0")||(doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55 && doc.getElementById("ring_aut").className=="1")){doc.getElementById("dlina_inputoff").style.border="2px solid #e7e7e7";}
+         if(doc.getElementById("ring_aut").className=="0")send_request(this,"flag3?on="+doc.getElementById("dlina_inputon").value+"&off="+doc.getElementById("dlina_inputoff").value+"&on1=3"+"&qua="+doc.getElementById("btn_plus").value);
+      }
+      else {
+           if(doc.getElementById("dlina_inputon").style.border!="2px solid red")doc.getElementById("dlina_inputon").style.border="2px solid red";
+           if(doc.getElementById("dlina_inputoff").style.border!="2px solid red")doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   if(doc.getElementById("nomer").style.color!="red")doc.getElementById("nomer").style.color="red";
+           alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }
+	  if (doc.getElementById("ring_aut").className=="1"&&doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55){
+	     if(doc.getElementById("dlina_inputon1").style.border!="2px solid #e7e7e7")doc.getElementById("dlina_inputon1").style.border="2px solid #e7e7e7"; 
+	     if(doc.getElementById("nomer").style.color!="#28b62c"&&doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)doc.getElementById("nomer").style.color="#28b62c";
+	     if(doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)send_request(this,"flag3?on="+doc.getElementById("dlina_inputon").value+"&off="+doc.getElementById("dlina_inputoff").value+"&on1="+doc.getElementById("dlina_inputon1").value+"&qua="+doc.getElementById("btn_plus").value);
+      }
+      if (doc.getElementById("ring_aut").className=="1" && doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)>55){
+           if(doc.getElementById("dlina_inputon1").style.border!="2px solid red")doc.getElementById("dlina_inputon1").style.border="2px solid red";
+           if(doc.getElementById("dlina_inputoff").style.border!="2px solid red")doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   if(doc.getElementById("nomer").style.color!="red")doc.getElementById("nomer").style.color="red";
+           if(doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }*/
+   }
+   function btn_minus(nomer){
+   var col=parseInt(doc.getElementById("nomer"+nomer).innerHTML,10)-1;
+   console.log(col);
+  if(col>=1){
+   doc.getElementById("nomer"+nomer).innerHTML=col;
+   if (doc.getElementById("dlina_inputon"+nomer).value*col+doc.getElementById("dlina_inputoff").value<=55){
+        doc.getElementById("dlina_inputon"+nomer).style.border="2px solid #e7e7e7"; 
+		doc.getElementById("dlina_inputoff").style.border="2px solid #e7e7e7";
+		doc.getElementById("nomer"+nomer).style.color="#28b62c";
+      }
+      else {
+           doc.getElementById("dlina_inputon"+nomer).style.border="2px solid red";
+           doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   doc.getElementById("nomer"+nomer).style.color="red";
+           alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }
+	 /* if (doc.getElementById("ring_aut").className=="1"&&doc.getElementById("dlina_inputon"+nomer).value*submit.value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55){
+	     if(doc.getElementById("dlina_inputon"+nomer).style.border!="2px solid #e7e7e7")doc.getElementById("dlina_inputon"+nomer).style.border="2px solid #e7e7e7"; 
+	     if(doc.getElementById("nomer"+nomer).style.color!="#28b62c"&&doc.getElementById("dlina_inputon"+nomer).value*submit.value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)doc.getElementById("nomer"+nomer).style.color="#28b62c";
+      }
+      if (doc.getElementById("ring_aut").className=="1" && doc.getElementById("dlina_inputon1").value*submit.value+parseInt(doc.getElementById("dlina_inputoff").value,10)>55){
+           if(doc.getElementById("dlina_inputon1").style.border!="2px solid red")doc.getElementById("dlina_inputon1").style.border="2px solid red";
+           if(doc.getElementById("dlina_inputoff").style.border!="2px solid red")doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   if(doc.getElementById("nomer").style.color!="red")doc.getElementById("nomer").style.color="red";
+           if(doc.getElementById("dlina_inputon").value*submit.value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }*/
+   }
+   else alert("Количество звокво не может быть меньше одного");
+   }
+   function btn_plus(){/*
+   if(doc.getElementById("btn_plus").value<127){
+   doc.getElementById("btn_plus").value++;
+   doc.getElementById("nomer").innerHTML=doc.getElementById("btn_plus").value;
+   if (doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55){
+         if(doc.getElementById("dlina_inputon").style.border!="2px solid #e7e7e7")doc.getElementById("dlina_inputon").style.border="2px solid #e7e7e7"; 
+		 if(doc.getElementById("nomer").style.color!="#28b62c")doc.getElementById("nomer").style.color="#28b62c";
+		 if((doc.getElementById("ring_aut").className=="0")||(doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55 && doc.getElementById("ring_aut").className=="1")){doc.getElementById("dlina_inputoff").style.border="2px solid #e7e7e7";}
+      }
+      else {
+           if(doc.getElementById("dlina_inputon").style.border!="2px solid red")doc.getElementById("dlina_inputon").style.border="2px solid red";
+           if(doc.getElementById("dlina_inputoff").style.border!="2px solid red")doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   if(doc.getElementById("nomer").style.color!="red")doc.getElementById("nomer").style.color="red";
+           alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }
+	  if (doc.getElementById("ring_aut").className=="1"&&doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55){
+	     if(doc.getElementById("dlina_inputon1").style.border!="2px solid #e7e7e7")doc.getElementById("dlina_inputon1").style.border="2px solid #e7e7e7"; 
+	     if(doc.getElementById("nomer").style.color!="#28b62c"&&doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)doc.getElementById("nomer").style.color="#28b62c";
+      }
+      if (doc.getElementById("ring_aut").className=="1" && doc.getElementById("dlina_inputon1").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)>55){
+           if(doc.getElementById("dlina_inputon1").style.border!="2px solid red")doc.getElementById("dlina_inputon1").style.border="2px solid red";
+           if(doc.getElementById("dlina_inputoff").style.border!="2px solid red")doc.getElementById("dlina_inputoff").style.border="2px solid red";
+		   if(doc.getElementById("nomer").style.color!="red")doc.getElementById("nomer").style.color="red";
+           if(doc.getElementById("dlina_inputon").value*doc.getElementById("btn_plus").value+parseInt(doc.getElementById("dlina_inputoff").value,10)<=55)alert("Сумарный процесс звонения должен быть меньше 55 секунд");
+      }
+}
+	  else alert("Количество звокво не может быть больше 127");
+   }
+  function zadat(){
+   send_request(this,"timer?timer="+doc.getElementById("time_in").value);
+  } 
+  function cekbox(){
+           if (doc.getElementById("scales").value=="on"){
+		      doc.getElementById("scales").value="off";
+			  activ=false;
+			}
+		   else if (doc.getElementById("scales").value=="off"){
+		      doc.getElementById("scales").value="on";
+			  activ=true;
+		   }
+}
+function set_text(submit){
+    server = "/text?text="+doc.getElementById('text').value;
+    send_request(submit,server);
+   }
+   function calendar_save(submit){
+   submit.setAttribute("data-sostoynie","1");
+   }
+   function set_color(submit){
+   server = "/color?color="+submit.value;
+   send_request(submit,server);*/
+   }
+</script>
+ </head>
+ <body onload="load();">
+ <noscript style="font-size: 3em; text-align: center; line-height: 200%; color:red; margin:10%;" >Здравствуйте, в вашем браузере не включен JavaScript, без него сайт нормально функционировать не будет. Настоятельно просим включить JavaScript для работы с нашим сайтом!!!</noscript>
+ <!--
+ <div id="page-preloader"class="preloader">
+  <div class="loader"></div>
+</div>-->
+  <div class="container">
+   <div class="row" style="text-align:center;">
+    <h1 style="margin:50px;">Настройки</h1>
+    <div id="telo"class="col-sm-offset-2 col-sm-8 col-md-offset-3 col-md-6">
+     <h5 class="alert-info" id="ssdp_t">{{SSDP}}</h5>
+     <a class="btn btn-block btn-danger" href="/">Страница устройств</a>
+     <a class="btn btn-block btn-default" href="/ring2.html">Страница управления</a>
+     <hr>
+     <h2>Имя устройства</h2>
+     <input id="ssdp" value="{{SSDP}}" class="form-control" pattern=".{1,20}" placeholder="Имя устройства">
+     <input class="btn btn-block btn-success" value="Сохранить" onclick="set_ssdp(this);" type="submit">
+     <hr>
+     <h2>Подключение к WiFi роутеру</h2>
+     <input id="ssid" value="{{ssid}}" class="form-control" pattern=".{1,32}" placeholder="Имя WiFi сети">
+     <input id="password" value="{{password}}" pattern=".{8,32}" onfocus="this.type='text'" type="password" class="form-control" placeholder="Пароль">
+     <input class="btn btn-block btn-success" value="Сохранить" onclick="set_ssid(this);" type="submit">
+     <hr>
+	 <h2>IP в сети {{ssid}}:</h2>
+	 <h2>{{ip}}</h2>
+	 <input class="btn btn-block btn-primary" value="Узнать" type="submit" onclick="poisk(this);">
+	 <hr>
+     <h2>Временная зона GMT</h2>
+     <input id="timezone" value="{{timezone}}" pattern="[0-9]{1,3}" class="form-control">
+     <input class="btn btn-block btn-success" value="Сохранить" onclick="time_zone(this);" type="submit">
+     <input class="btn btn-block btn-primary" value="Авто определение и сохранение зоны" onclick="set_time_zone(this);" type="submit">
+     <h2>На устройстве сейчас <strong id="time">{{time}}</strong></h2>
+     <input class="btn btn-block btn-primary" value="Синхронизировать время" onclick="load_time(this);" type="submit">
+     <hr>
+	 <h2>Задать время устройству</h2>
+	 <input  type="datetime-local"step="1" id="time_in">
+	 <br><input type="checkbox"id="scales"checked="1"value="on"onclick="cekbox();"><label id="forscales"for="scales">Продолжить счёт</label>
+	 <input type="submit" class="btn btn-block btn-primary" value="Задать" onclick="zadat();">
+	 <hr>
+     <h2>Точка доступа</h2>
+     <input id="ssidap" value="{{ssidAP}}" class="form-control" pattern=".{1,32}" placeholder="Имя WiFi сети">
+     <input id="passwordAp" value="{{passwordAP}}" pattern=".{8,32}" onfocus="this.type='text'" type="password" class="form-control" placeholder="Пароль">
+     <input  class="btn btn-block btn-success" value="Сохранить" onclick="set_ssid_ap(this);" type="submit">
+     <hr>
+	 <h2>Прeдупредительный звонок</h2>
+	 <div id="predup"><h2>Сейчас:</h2><input id="predupbutn" class="predupbutn_net" value="Нет" type="submit" onclick="predupbutn();"></div>
+	 <hr>
+	 <h2>Метод звонения</h2>
+	 <div id="ring"><button id="ring_levo" onclick="ring_pravo();" ><</button><div id="ring_aut" class="0">Одинаковые</div><button id="ring_pravo" onclick="ring_pravo();">></button></div>
+	 <hr>
+     <div id="flag_time"><h2 id="time_tekst1">Длина Звонка</h2><h2 id="time_tekst2">Длина Паузы</h2>
+     <input id="dlina_inputon" class="form-control" type="number" pattern="^[ 0-9]+$" min="1" max="30" value="{{flag3}}">
+	 <div id="input_div1"> <input id="dlina_inputoff" class="form-control" type="number" pattern="^[ 0-9]+$" min="1" max="59" value="{{flag4}}"></div>
+	  </div>
+	  <div id="kolvo"><h2>Количество звонков: <span id="nomer">2</span></h2><div class="plus_minus"><button class="btn_minus" onclick='btn_minus("");'><div class="minus">-</div></button><button class="btn_plus" onclick="btn_plus();"><div class="plus">+</div></button></div></div>
+	  <input id="time_save_btn" class="btn btn-block btn-success" value="Сохранить" onclick="time_save(this);" type="submit">
+	 <hr>
+	 <div id="tumbler"> 
+     <label id="switch">
+     <input id="box" value="{{saturday}}" type="checkbox"  onclick="btncheck();">
+     <span id="slider" class="slider round"></span>
+     </label>
+     </div>
+	 <hr>
+	 <h2>Выводимый текст</h2>
+<input id="text" value="{{text}}" class="form-control" pattern=".{0,1255}" placeholder="Текст">
+<input class="btn btn-block btn-success" value="Сохранить" onclick="set_text(this);" type="submit">
+<div id="color_d" style="margin-top:10px;">
+<div id="color_red"><button value="0" style="background:red;" onclick="set_color(this);"></button></div>
+<div id="color_green"><button value="1" style="background:green;" onclick="set_color(this);"></button></div>
+<div id="color_blue"><button value="2" style="background:blue;" onclick="set_color(this);"></button></div>
+<div id="color_white"><button value="3" style="background:white;" onclick="set_color(this);"></button></div>
+<div id="color_yellow"><button value="4" style="background:yellow;" onclick="set_color(this);"></button></div>
+<div id="color_cyan"><button value="5" style="background:cyan;" onclick="set_color(this);"></button></div>
+<div id="color_magenta"><button value="6" style="background:magenta;" onclick="set_color(this);"></button></div>
+</div>
+<hr>
+<div>
+<div id="calendar_hed"><div><button class="calendar_left" style="border-radius:10px 0 0 0;"><</button></div><div class="mart" style="padding-top:5px;">Март 2021</div><div><button class="calendar_left" style="border-radius:0 10px 0 0;">></button></div></div>
+<div id="calendar_week"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+<div class="calendar_day" style="border-radius:0 0 10px 10px;">
+<div><input class="calendar_d" data-sostoynie="0" value="1" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="2" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="3" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="4" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="5" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="6" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="7" type="submit" onclick="calendar_save(this);"></div>
+<div><input class="calendar_d" value="8" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="9" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="10" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="11" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="12" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="13" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="14" type="submit" onclick="calendar_save(this);"></div>
+<div><input class="calendar_d" value="15" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="16" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="17" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="18" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="19" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="20" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="21" type="submit" onclick="calendar_save(this);"></div>
+<div><input class="calendar_d" value="22" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="23" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="24" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="25" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="26" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="27" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="28" type="submit" onclick="calendar_save(this);"></div>
+<div><input style="border-radius:0 0 0 10px;" class="calendar_d" value="29" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="30" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="31" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="" type="submit" onclick="calendar_save(this);"></div><div><input class="calendar_d" value="" type="submit" onclick="calendar_save(this);"></div><div><input style="border-radius:0 0 10px 0;" class="calendar_d" value="" type="submit" onclick="calendar_save(this);"></div>
+</div>
+</div>
+<hr>
+     <input  class="btn btn-block btn-warning" value="Перезагрузить устройство" onclick="restart(this,'Вы действительно хотите перезагрузить устройство?');" type="submit">
+    </div>
+   </div>
+  </div>
+ </body>
+</html>
